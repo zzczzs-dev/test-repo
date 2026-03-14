@@ -2,7 +2,5 @@
 
 [build]
   command = ""
-  directory = "/public"
-
-[build.environment]
-  NODE_VERSION = "18"
+  root = ""
+  output = "public"
