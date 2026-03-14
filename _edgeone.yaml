@@ -1,8 +1,8 @@
 # EdgeOne Pages 配置
 
 [build]
-  command = ""  # 静态站点，无需构建命令
-  directory = "/"  # 部署根目录
+  command = ""
+  directory = "/public"
 
 [build.environment]
   NODE_VERSION = "18"
