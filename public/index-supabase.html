@@ -237,6 +237,20 @@
             animation: shake 0.5s ease-in-out;
         }
         
+        .btn-small {
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: 1px solid white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-small:hover {
+            background: white;
+            color: #667eea;
+        }
+        
         .history-section {
             margin-top: 25px;
             padding-top: 20px;
@@ -855,6 +869,28 @@
         });
         
         document.getElementById('recommend-btn').addEventListener('click', recommendDish);
+        
+        function getCurrentTimeOfDay() {
+            const hour = new Date().getHours();
+            if (hour >= 6 && hour < 10) return '早餐';
+            if (hour >= 11 && hour < 14) return '午餐';
+            if (hour >= 17 && hour < 20) return '晚餐';
+            return '晚餐';
+        }
+        
+        function getCurrentRecommendedDishes() {
+            const resultDiv = document.getElementById('result');
+            const dishElements = resultDiv.querySelectorAll('.dish-item');
+            const dishes = {};
+            dishElements.forEach(el => {
+                const category = el.querySelector('.dish-category')?.textContent;
+                const name = el.querySelector('.dish-name')?.textContent;
+                if (category && name) {
+                    dishes[category] = name;
+                }
+            });
+            return Object.keys(dishes).length > 0 ? dishes : null;
+        }
         
         document.getElementById('add-category-btn').addEventListener('click', async function() {
             const nameInput = document.getElementById('new-category');
