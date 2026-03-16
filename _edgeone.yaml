@@ -2,5 +2,5 @@
 
 [build]
   command = ""
-  root = ""
+  root = "."
   output = "public"
