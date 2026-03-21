@@ -257,12 +257,40 @@
             border-top: 1px solid #e2e8f0;
         }
         
+        .history-section h3 {
+            margin-bottom: 15px;
+            color: #4a5568;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .clear-history-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
         .ai-review-section {
-            margin-top: 20px;
-            padding: 15px;
+            margin-top: 25px;
+            padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 12px;
             color: white;
+        }
+        
+        .ai-review-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .ai-review-section p {
+            margin-bottom: 10px;
+            opacity: 0.9;
         }
         
         .ai-review-btn {
@@ -291,27 +319,10 @@
             background: rgba(255,255,255,0.95);
             border-radius: 8px;
             color: #333;
+            max-height: 300px;
+            overflow-y: auto;
             white-space: pre-wrap;
             line-height: 1.6;
-            display: none;
-        }
-        
-        .history-section h3 {
-            margin-bottom: 15px;
-            color: #4a5568;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .clear-history-btn {
-            background: #e53e3e;
-            color: white;
-            border: none;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
         }
         
         .history-list {
@@ -504,8 +515,10 @@
                 <span>点击按钮开始推荐</span>
             </div>
             
-            <div class="ai-review-section" id="ai-review-section" style="display: none;">
-                <button class="btn ai-review-btn" id="ai-review-btn">AI 点评</button>
+            <div class="ai-review-section">
+                <h3>AI 菜品点评</h3>
+                <p>根据您的忌口和用餐时间，AI 将为您点评当前推荐的菜品</p>
+                <button class="ai-review-btn" id="ai-review-btn">获取点评</button>
                 <div class="ai-review-result" id="ai-review-result"></div>
             </div>
             
@@ -539,7 +552,6 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="ai-service.js"></script>
     <script>
         const SUPABASE_URL = 'https://qweysxweaycvsujyrhnp.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3ZXlzeHdlYXljdnN1anlyaG5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NjQ5NDksImV4cCI6MjA4ODQ0MDk0OX0.-n02Kix05b5iLT_5gXieDpVjvpcmFso8isDSErGFA04';
@@ -917,10 +929,10 @@
         
         function getCurrentTimeOfDay() {
             const hour = new Date().getHours();
-            if (hour >= 6 && hour < 10) return 'breakfast';
-            if (hour >= 11 && hour < 14) return 'lunch';
-            if (hour >= 17 && hour < 20) return 'dinner';
-            return 'dinner';
+            if (hour >= 6 && hour < 10) return '早餐';
+            if (hour >= 11 && hour < 14) return '午餐';
+            if (hour >= 17 && hour < 20) return '晚餐';
+            return '晚餐';
         }
         
         function getCurrentRecommendedDishes() {
@@ -937,59 +949,48 @@
             return Object.keys(dishes).length > 0 ? dishes : null;
         }
         
-        const aiReviewSection = document.getElementById('ai-review-section');
-        const aiReviewBtn = document.getElementById('ai-review-btn');
-        const aiReviewResult = document.getElementById('ai-review-result');
-        
-        aiReviewBtn.addEventListener('click', async function() {
+        document.getElementById('ai-review-btn').addEventListener('click', async function() {
+            const resultDiv = document.getElementById('ai-review-result');
+            const btn = this;
+            
             const currentDishes = getCurrentRecommendedDishes();
             if (!currentDishes || Object.keys(currentDishes).length === 0) {
                 alert('请先点击"随机推荐"获取推荐菜品');
                 return;
             }
             
-            const savedKey = localStorage.getItem('deepseek_api_key');
-            if (!savedKey) {
-                const apiKey = prompt('请输入 DeepSeek API Key：');
-                if (!apiKey) return;
-                localStorage.setItem('deepseek_api_key', apiKey);
-                window.setDeepseekApiKey(apiKey);
-            } else {
-                window.setDeepseekApiKey(savedKey);
-            }
-            
-            aiReviewBtn.disabled = true;
-            aiReviewBtn.textContent = 'AI 正在点评...';
-            aiReviewResult.style.display = 'block';
-            aiReviewResult.textContent = 'AI 正在分析菜品，请稍候...';
-            
-            const taboo = document.getElementById('taboo').value;
-            const timeOfDay = getCurrentTimeOfDay();
+            btn.disabled = true;
+            btn.textContent = 'AI 正在分析...';
+            resultDiv.textContent = 'AI 正在分析菜品，请稍候...';
             
             try {
-                const review = await window.reviewDishes(currentDishes, taboo, timeOfDay);
-                aiReviewResult.textContent = review;
-            } catch (error) {
-                aiReviewResult.textContent = '错误: ' + error.message;
-                if (error.message.includes('API Key')) {
-                    localStorage.removeItem('deepseek_api_key');
+                const taboo = document.getElementById('taboo').value;
+                const timeOfDay = getCurrentTimeOfDay();
+                
+                const response = await fetch('/api/ai-review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dishes: currentDishes,
+                        taboo: taboo,
+                        mealTime: timeOfDay
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.textContent = data.data;
+                } else {
+                    resultDiv.textContent = '错误: ' + data.error;
                 }
+            } catch (error) {
+                resultDiv.textContent = '错误: ' + error.message;
             }
             
-            aiReviewBtn.disabled = false;
-            aiReviewBtn.textContent = 'AI 点评';
+            btn.disabled = false;
+            btn.textContent = '获取点评';
         });
-        
-        const originalRecommendDish = recommendDish;
-        recommendDish = async function() {
-            await originalRecommendDish();
-            const dishes = getCurrentRecommendedDishes();
-            if (dishes && Object.keys(dishes).length > 0) {
-                aiReviewSection.style.display = 'block';
-                aiReviewResult.style.display = 'none';
-                aiReviewResult.textContent = '';
-            }
-        };
         
         document.getElementById('add-category-btn').addEventListener('click', async function() {
             const nameInput = document.getElementById('new-category');

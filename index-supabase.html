@@ -261,6 +261,158 @@
             cursor: pointer;
         }
         
+        .ai-recommend-section {
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border-radius: 12px;
+            color: white;
+        }
+        
+        .ai-recommend-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .ai-recommend-section p {
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .ai-recommend-btn {
+            background: white;
+            color: #11998e;
+            font-weight: bold;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .ai-recommend-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .ai-recommend-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .ai-recommend-result {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 8px;
+            color: #333;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .ai-recommend-result .dish-recommend-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #11998e;
+        }
+        
+        .ai-recommend-result .dish-recommend-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .ai-recommend-result .dish-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+        
+        .ai-recommend-result .dish-category {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #11998e;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-bottom: 5px;
+        }
+        
+        .ai-recommend-result .dish-reason {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .ai-recommend-result .add-dish-btn {
+            margin-top: 8px;
+            background: #11998e;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .ai-recommend-result .add-dish-btn:hover {
+            background: #0d7a70;
+        }
+        
+        .ai-recommend-result .add-dish-btn.added {
+            background: #38a169;
+            cursor: default;
+        }
+        
+        .ai-review-section {
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+        }
+        
+        .ai-review-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .ai-review-section p {
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .ai-review-btn {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .ai-review-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .ai-review-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .ai-review-result {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 8px;
+            color: #333;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        
         .history-list {
             max-height: 150px;
             overflow-y: auto;
@@ -449,6 +601,20 @@
             
             <div class="result" id="result">
                 <span>点击按钮开始推荐</span>
+            </div>
+            
+            <div class="ai-recommend-section">
+                <h3>AI 智能推荐</h3>
+                <p>根据您的忌口和用餐时间，AI 为您推荐菜品</p>
+                <button class="ai-recommend-btn" id="ai-recommend-btn">AI 推荐</button>
+                <div class="ai-recommend-result" id="ai-recommend-result"></div>
+            </div>
+            
+            <div class="ai-review-section">
+                <h3>AI 菜品点评</h3>
+                <p>根据您的忌口和用餐时间，AI 将为您点评当前推荐的菜品</p>
+                <button class="ai-review-btn" id="ai-review-btn">获取点评</button>
+                <div class="ai-review-result" id="ai-review-result"></div>
             </div>
             
             <div class="history-section">
@@ -855,6 +1021,156 @@
         });
         
         document.getElementById('recommend-btn').addEventListener('click', recommendDish);
+        
+        function getCurrentTimeOfDay() {
+            const hour = new Date().getHours();
+            if (hour >= 6 && hour < 10) return '早餐';
+            if (hour >= 11 && hour < 14) return '午餐';
+            if (hour >= 17 && hour < 20) return '晚餐';
+            return '晚餐';
+        }
+        
+        function getCurrentRecommendedDishes() {
+            const resultDiv = document.getElementById('result');
+            const dishElements = resultDiv.querySelectorAll('.dish-name');
+            const dishes = {};
+            dishElements.forEach(el => {
+                const category = el.getAttribute('data-category');
+                const nameEl = el.querySelector('.dish-text');
+                const name = nameEl?.textContent;
+                if (category && name) {
+                    dishes[category] = name;
+                }
+            });
+            return Object.keys(dishes).length > 0 ? dishes : null;
+        }
+        
+        document.getElementById('ai-recommend-btn').addEventListener('click', async function() {
+            const resultDiv = document.getElementById('ai-recommend-result');
+            const btn = this;
+            
+            if (!dishesData || Object.keys(dishesData).length === 0) {
+                alert('请先加载菜品数据');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'AI 正在推荐...';
+            resultDiv.innerHTML = '<div style="text-align: center; color: #666;">AI 正在为您推荐菜品，请稍候...</div>';
+            
+            try {
+                const taboo = document.getElementById('taboo').value;
+                const timeOfDay = getCurrentTimeOfDay();
+                
+                const response = await fetch('/api/ai-recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dishesData: dishesData,
+                        taboo: taboo,
+                        mealTime: timeOfDay
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.dishes) {
+                    let html = '';
+                    data.data.dishes.forEach((dish, index) => {
+                        html += `
+                            <div class="dish-recommend-item">
+                                <div class="dish-name">${dish.name}</div>
+                                <span class="dish-category">${dish.category}</span>
+                                <div class="dish-reason">${dish.reason}</div>
+                                <button class="add-dish-btn" data-name="${dish.name}" data-category="${dish.category}">添加到菜品库</button>
+                            </div>
+                        `;
+                    });
+                    resultDiv.innerHTML = html;
+                    
+                    document.querySelectorAll('.add-dish-btn').forEach(btn => {
+                        btn.addEventListener('click', async function() {
+                            if (this.classList.contains('added')) return;
+                            
+                            const dishName = this.getAttribute('data-name');
+                            const categoryName = this.getAttribute('data-category');
+                            const category = categories.find(c => c.name === categoryName);
+                            
+                            if (!category) {
+                                alert('未找到分类: ' + categoryName);
+                                return;
+                            }
+                            
+                            const { error } = await supabaseClient
+                                .from('dishes')
+                                .insert([{ 
+                                    name: dishName, 
+                                    category_id: category.id,
+                                    is_active: true 
+                                }]);
+                            
+                            if (error) {
+                                alert('添加失败: ' + error.message);
+                            } else {
+                                this.classList.add('added');
+                                this.textContent = '已添加';
+                                await loadData();
+                            }
+                        });
+                    });
+                } else {
+                    resultDiv.innerHTML = '<div style="color: red;">错误: ' + (data.error || '推荐失败') + '</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<div style="color: red;">错误: ' + error.message + '</div>';
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'AI 推荐';
+        });
+        
+        document.getElementById('ai-review-btn').addEventListener('click', async function() {
+            const resultDiv = document.getElementById('ai-review-result');
+            const btn = this;
+            
+            const currentDishes = getCurrentRecommendedDishes();
+            if (!currentDishes || Object.keys(currentDishes).length === 0) {
+                alert('请先点击"随机推荐"获取推荐菜品');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'AI 正在分析...';
+            resultDiv.textContent = 'AI 正在分析菜品，请稍候...';
+            
+            try {
+                const taboo = document.getElementById('taboo').value;
+                const timeOfDay = getCurrentTimeOfDay();
+                
+                const response = await fetch('/api/ai-review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dishes: currentDishes,
+                        taboo: taboo,
+                        mealTime: timeOfDay
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.textContent = data.data;
+                } else {
+                    resultDiv.textContent = '错误: ' + data.error;
+                }
+            } catch (error) {
+                resultDiv.textContent = '错误: ' + error.message;
+            }
+            
+            btn.disabled = false;
+            btn.textContent = '获取点评';
+        });
         
         document.getElementById('add-category-btn').addEventListener('click', async function() {
             const nameInput = document.getElementById('new-category');
