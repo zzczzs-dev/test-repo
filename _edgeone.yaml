@@ -4,3 +4,6 @@
   command = ""
   root = "."
   output = "public"
+
+[functions]
+  dir = "./functions"

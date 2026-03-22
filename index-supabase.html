@@ -648,13 +648,10 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const CONFIG = {
-            SUPABASE_URL: 'https://qweysxweaycvsujyrhnp.supabase.co',
-            SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3ZXlzeHdlYXljdnN1anlyaG5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NjQ5NDksImV4cCI6MjA4ODQ0MDk0OX0.-n02Kix05b5iLT_5gXieDpVjvpcmFso8isDSErGFA04',
-            API_BASE: ''  // 部署时填写，如 'https://your-backend.railway.app'
-        };
+        const SUPABASE_URL = 'https://qweysxweaycvsujyrhnp.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3ZXlzeHdlYXljdnN1anlyaG5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NjQ5NDksImV4cCI6MjA4ODQ0MDk0OX0.-n02Kix05b5iLT_5gXieDpVjvpcmFso8isDSErGFA04';
         
-        const supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         let categories = [];
         let dishesData = {};
@@ -1064,9 +1061,8 @@
             try {
                 const taboo = document.getElementById('taboo').value;
                 const timeOfDay = getCurrentTimeOfDay();
-                const apiBase = CONFIG.API_BASE || '';
                 
-                const response = await fetch(apiBase + '/api/ai-recommend', {
+                const response = await fetch('/api/ai-recommend', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1150,9 +1146,8 @@
             try {
                 const taboo = document.getElementById('taboo').value;
                 const timeOfDay = getCurrentTimeOfDay();
-                const apiBase = CONFIG.API_BASE || '';
                 
-                const response = await fetch(apiBase + '/api/ai-review', {
+                const response = await fetch('/api/ai-review', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
