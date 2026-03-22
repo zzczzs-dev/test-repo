@@ -39,10 +39,10 @@ const SYSTEM_PROMPT_DISH = `你是"今天吃什么"小程序的智能菜品推�
 
 ## 行为约束
 1. 只推荐现有菜品库中没有的新菜品（用户可能没吃过的）
-2. 推荐时要考虑菜品的多样性（主食、荤菜、素菜、小吃搭配）
-3. 每次推荐3-5道菜品
+2. 推荐时要覆盖所有分类，每个分类至少推荐1道
+3. 每次推荐4-6道菜品，确保涵盖所有分类
 4. 推荐时考虑早餐/午餐/晚餐的不同需求
-5. 保持回答简洁，不超过150字
+5. 保持回答简洁，每道推荐不超过30字
 6. 不要推荐用户忌口的食材
 
 ## 输出格式
@@ -79,23 +79,26 @@ function buildUserPrompt(dishes, taboo, mealTime) {
 }
 
 function buildDishRecommendPrompt(dishesData, taboo, mealTime) {
-    const existingDishes = Object.entries(dishesData)
-        .map(([category, dishes]) => `${category}：${dishes.join('、')}`)
+    const categories = Object.keys(dishesData);
+    const existingDishes = categories
+        .map(category => {
+            const dishes = dishesData[category] || [];
+            return `${category}：${dishes.length > 0 ? dishes.join('、') : '（暂无菜品）'}`;
+        })
         .join('\n');
     
-    const categories = Object.keys(dishesData).join('、');
-    
-    return `## 现有菜品库（这些菜品已存在，请勿推荐）：
-${existingDishes || '（空）'}
+    return `## 现有分类（必须全部覆盖）：${categories.join('、')}
 
-## 现有分类：${categories}
+## 现有菜品库（这些菜品已存在，请勿推荐）：
+${existingDishes}
 
 ## 用户忌口：${taboo || '无'}
 ## 用餐时间：${mealTime}
 
 ## 任务
-请根据现有菜品库和用户忌口，推荐【菜品库中不存在的】新菜品3-5道。
-注意：必须使用上述现有分类，不能使用新分类！`;
+请为上述每个分类各推荐1-2道【菜品库中不存在】的新菜品。
+必须覆盖全部 ${categories.length} 个分类！
+`;
 }
 
 async function callDeepSeek(dishes, taboo, mealTime) {
